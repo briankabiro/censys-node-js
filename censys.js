@@ -5,6 +5,9 @@ check if function holds up for all kinds of search variations
 check what other functions from the other apis do and what they return and get what they do
 
 check how to add up data after each response before writing to file
+add config type to all functions
+make search function work
+make report function work
 */
 
 var config = require('./censys_config');
@@ -13,8 +16,8 @@ var apiUrl = 'https://www.censys.io/api/v1/';
 var fs = require('fs');
 
 module.exports = {
-	search:function(index, searchTerm,pages){
-		searchUrl = 'https://www.censys.io/api/v1/search'+index;
+	search:function(index,searchTerm,pages){
+		var searchUrl = 'https://www.censys.io/api/v1/search'+index;
 		request({
 			url:searchUrl,
 			method:'POST',
@@ -29,8 +32,17 @@ module.exports = {
 			}
 		}).on('response', function(response){
 			//search function returns the response
-			console.log(response);
-			return response;
+			console.log("Request went through");
+			var chunk = '';
+			response.on('data', function(data) {
+				chunk += data;
+			})
+			response.on('end', function(){
+				fs.writeFile('data.txt',chunk,function(err){
+					if(err) console.error(err);
+					console.log('Finished writing to da file');
+				})	
+			})
 		}).on('error', function(err){
 			console.error(err);
 		})	
@@ -38,7 +50,7 @@ module.exports = {
 
 	view:function(index,id){
 		//takes in index and the id depending on index provided
-		viewUrl  = 'https://www.censys.io/api/v1/'+index+'/'+id;
+		var viewUrl  = 'https://www.censys.io/api/v1/'+index+'/'+id;
 		request.get(viewUrl,{
   		'auth':{
 		    'user':"92d6ccbf-ad24-4326-9ccc-43af301eebd4",
@@ -46,36 +58,48 @@ module.exports = {
 			}
 		}).on('response', function(response){
 			//search function returns the response
-			console.log(viewUrl);
-			var information = JSON.stringify(response);
-			fs.writeFileSync('data.txt',information);
+			console.log("Request went through");
+			var chunk = '';
+			response.on('data', function(data) {
+				chunk += data;
+			})
+			response.on('end', function(){
+				fs.writeFile('data.txt',chunk,function(err){
+					if(err) console.error(err);
+					console.log('Finished writing to da file');
+				})	
+
+			})
 		}).on('error', function(err){
 			console.error(err);
 		})	
 	},
 	data:function(){
 		//do data function and develop it to list raw datasets available to download
-		dataUrl = "https://www.censys.io/api/v1/data";
+		var dataUrl = "https://www.censys.io/api/v1/data";
 		request.get(dataUrl,{
 			'auth':{
-				'user':"92d6ccbf-ad24-4326-9ccc-43af301eebd4",
-		    	'pass':"8lr2dHV6T2AleMZwEs0ShHRXdGPXQbms"
+				'user':"'"+config.key+"'",
+		    	'pass':"'"+config.secret+"'"
 			}
 		}).on('response',function(response){
 			console.log("Request went through");
-			var chunk;
+			var chunk = '';
 			response.on('data', function(data) {
 				chunk += data;
 			})
-			fs.writeFile('data.txt',chunk,function(err){
+			response.on('end', function(){
+				fs.writeFile('data.txt',chunk,function(err){
 					if(err) console.error(err);
 					console.log('Finished writing to da file');
-			})	
+				})	
+			})
 		}).on('error', function(err){
 			console.error(err);
 		})	
 	},
 	report:function(){
 		//check how to get list of parameters from user and add them, maybe pass them into an array and assign them according to position in array
+	
 	}
 }
