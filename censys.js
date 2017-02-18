@@ -23,7 +23,7 @@ module.exports = {
 			method:'POST',
 			qs:{
 				"query":searchTerm,
-				"pages":2,
+				"pages":arguments[2],
 				"fields":[]
 			},
 			auth:{
@@ -68,7 +68,7 @@ module.exports = {
 					if(err) console.error(err);
 					console.log('Finished writing to da file');
 				})	
-
+		
 			})
 		}).on('error', function(err){
 			console.error(err);
@@ -98,8 +98,37 @@ module.exports = {
 			console.error(err);
 		})	
 	},
-	report:function(){
+	report:function(index,query,field,buckets){
 		//check how to get list of parameters from user and add them, maybe pass them into an array and assign them according to position in array
-	
+		var reportUrl = "https://www.censys.io/api/v1/report/"+index;
+		request({
+			url:reportUrl,
+			method:'POST',
+			qs:{
+				"query":query,
+				"field":field,
+				"buckets":50
+			},
+			auth:{
+			    'user':"92d6ccbf-ad24-4326-9ccc-43af301eebd4",
+			    'pass':"8lr2dHV6T2AleMZwEs0ShHRXdGPXQbms"
+			}
+		}).on('response', function(response){
+			//search function returns the response
+			console.log(reportUrl);
+			console.log("Request went through");
+			var chunk = '';
+			response.on('data', function(data) {
+				chunk += data;
+			})
+			response.on('end', function(){
+				fs.writeFile('data.txt',chunk,function(err){
+					if(err) console.error(err);
+					console.log('Finished writing to da file');
+				})	
+			})
+		}).on('error', function(err){
+			console.error(err);
+		})	
 	}
 }
